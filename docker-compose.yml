@@ -1,18 +1,46 @@
 services:
-  php:
-    image: php:7.4-fpm
-    volumes:
-      - './src:/var/www/html'
-
   nginx:
-    image: nginx:latest
-    ports:
-      - 3001:80
+    image: nginx:alpine
     volumes:
-      - './src:/var/www/html'
-      - './docker/nginx/conf.d:/etc/nginx/conf.d'
-
+      - ./docker/nginx/volumes/conf.d/:/etc/nginx/conf.d
+      - ./docker/nginx/volumes/logs/:/var/log/nginx
+      - ./:/var/www/pod
+    ports:
+      - "3001:3001" #backend
+      # - "3002:3002" # socket.io
+      # - "3003:3003" # telegram 8433
+    depends_on:
+      - php
+  php:
+    container_name: pod
+    build:
+      context: .
+      dockerfile: php.dockerfile
+    volumes:
+      - ./:/var/www/pod
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
   mysql:
-    image: mysql:8
+    container_name: mysql
+    image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      - MYSQL_ROOT_PASSWORD=${MYSQL_MASTER_PASS}
+      - MYSQL_DATABASE=${MYSQL_MASTER_NAME}
+    volumes:
+      - ./docker/mysql/volumes/:/var/lib/mysql/
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: unless-stopped
+  pma:
+    container_name: pma
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      - PMA_HOST=${MYSQL_MASTER_HOST}
+      - PMA_USER=${MYSQL_MASTER_USER}
+      - PMA_PASSWORD=${MYSQL_MASTER_PASS}
+      - PMA_ARBITRARY=1
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
