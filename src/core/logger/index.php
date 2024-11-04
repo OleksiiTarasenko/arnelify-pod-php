@@ -1,7 +1,5 @@
 <?php
 
-include './helpers/debug-to-console-helper.php';
-
 class Logger {
 
     /**
