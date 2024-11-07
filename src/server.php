@@ -7,4 +7,3 @@ $response = [
 ];
 
 echo json_encode($response);
-error_log("database not available!");
