@@ -51,4 +51,92 @@ class Router
         $this->sortRoutes();
     }
 
+    private function findSegments($route, $segmentsRoute, $segmentsUrl) {
+        if (count($segmentsRoute) !== count($segmentsUrl)) return null;
+
+        foreach ($segmentsRoute as $i => $segment) {
+            if (strpos($segment, ':') === 0) {
+                $key = substr($segment, 1);
+                $route['params'][$key] = $segmentsUrl[$i];
+            } else {
+                if ($segment !== $segmentsUrl[$i]) return null;
+            }
+        }
+
+        return $route;
+    }
+
+    private function findRoute($req) {
+        $pathname = strtok($req['url'], '?');
+        $segmentsUrl = explode('/', $pathname);
+
+        foreach ($this->routes as $route) {
+            $newRoute = $route;
+            $newRoute['params'] = [];
+            $segmentsRoute = explode('/', $route['route']);
+            $segments = $this->findSegments($newRoute, $segmentsRoute, $segmentsUrl);
+            if ($segments) return $newRoute;
+        }
+
+        return null;
+    }
+
+    private function getAgent($req) {
+        return $req['headers']['User-Agent'] ?? null;
+    }
+
+    private function getCookies($req) {
+        if (!isset($req['headers']['Cookie'])) return null;
+
+        $cookies = [];
+        foreach (explode('; ', $req['headers']['Cookie']) as $pair) {
+            list($key, $value) = explode('=', $pair, 2);
+            $cookies[$key] = $value;
+        }
+
+        return $cookies;
+    }
+
+    private function getParams($req) {
+        $query = [];
+        parse_str(parse_url($req['url'], PHP_URL_QUERY), $query);
+        return $query;
+    }
+
+    private function getBody($req) {
+        /* TODO:const body = await formidable(req);
+        return body; */
+    }
+
+    private function getIp($req) {
+        return $req['headers']['X-Forwarded-For'] ?? $req['remote_addr'];
+    }
+
+    public function request($req, $res) {
+        $pathname = strtok($req['url'], '?');
+        $route = $this->findRoute($req);
+        $cookies = $this->getCookies($req);
+        $params = $this->getParams($req);
+        $body = $req['method'] === 'POST' ? $this->getBody($req) : [];
+        $agent = $this->getAgent($req);
+        $ip = $this->getIp($req);
+
+        $ctx = ['params' => array_merge(['_state' => ['pathname' => $pathname, 'cookie' => $cookies, 'route' => $route, 'agent' => $agent, 'ip' => $ip]], $params, $body)];
+
+        if (!$route || !isset($route['controller'])) {
+            $res->status(404)->send(['code' => 404, 'error' => 'Not found.']);
+            return;
+        }
+
+        $response = call_user_func($route['controller'], $ctx);
+        if (!$response) {
+            $res->status(204)->send(['code' => 204, 'error' => 'Empty response.']);
+            return;
+        }
+
+        $code = $response['code'] ?? 200;
+        $headers = $response['headers'] ?? ['Content-Type' => 'application/json'];
+        $res->status($code)->headers($headers)->send($response);
+    }
+    
 }
