@@ -127,10 +127,10 @@ class Router
         $state = [
             '_state' => [
                 'pathname' => $pathname,
-                'cookie'   => $cookies,
-                'route'    => $route,
-                'agent'    => $agent,
-                'ip'       => $ip,
+                'cookie' => $cookies,
+                'route' => $route,
+                'agent' => $agent,
+                'ip' => $ip,
             ],
         ];
         $ctx = ['params' => array_merge($state, $params, $body)];
