@@ -3,6 +3,11 @@ class Router
 {
     private $routes = [];
 
+    /**
+     * Sort Routes
+     *
+     * @return void
+     */
     private function sortRoutes() {
         usort($this->routes, function ($a, $b) {
             $paramsLen = function ($segments) {
@@ -21,36 +26,86 @@ class Router
         });
     }
 
+    /**
+     * Any
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function any($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => null, 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Get
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function get($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => 'GET', 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Post
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function post($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => 'POST', 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Put
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function put($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => 'PUT', 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Patch
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function patch($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => 'PATCH', 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Delete
+     *
+     * @param [string] $route
+     * @param [CallableFunction] $controller
+     * @return void
+     */
     public function delete($route, $controller) {
         $this->routes[] = ['route' => $route, 'method' => 'DELETE', 'controller' => $controller];
         $this->sortRoutes();
     }
 
+    /**
+     * Find Route Segments
+     *
+     * @param [object] $route
+     * @param [Array] $segmentsRoute
+     * @param [Array] $segmentsUrl
+     * @return void
+     */
     private function findSegments($route, $segmentsRoute, $segmentsUrl) {
         if (count($segmentsRoute) !== count($segmentsUrl)) return null;
 
@@ -66,6 +121,12 @@ class Router
         return $route;
     }
 
+    /**
+     * Find Route
+     *
+     * @param [any] $req
+     * @return void
+     */
     private function findRoute($req) {
         $pathname = strtok($req['url'], '?');
         $segmentsUrl = explode('/', $pathname);
@@ -81,10 +142,22 @@ class Router
         return null;
     }
 
+    /**
+     * Get Agent
+     *
+     * @param [any] $req
+     * @return void
+     */
     private function getAgent($req) {
         return $req['headers']['User-Agent'] ?? null;
     }
 
+    /**
+     * Get Cookies
+     *
+     * @param [any] $req
+     * @return mixed
+     */
     private function getCookies($req) {
         if (!isset($req['headers']['Cookie'])) return null;
 
@@ -97,24 +170,48 @@ class Router
         return $cookies;
     }
 
+    /**
+     * Get Params
+     *
+     * @param [any] $req
+     * @return mixed
+     */
     private function getParams($req) {
         $query = [];
-        
+
         $urlQuery = parse_url($req['url'], PHP_URL_QUERY);
-        if (!$urlQuery) return null;
+        if (!$urlQuery) return [];
 
         parse_str($urlQuery, $query);
         return $query;
     }
 
+    /**
+     * Get Body
+     * @param [any] $req
+     * @return mixed
+     */
     private function getBody($req) {
         /* TODO*/
     }
 
+    /**
+     * Get IP
+     *
+     * @param [any] $req
+     * @return mixed
+     */
     private function getIp($req) {
         return $req['headers']['X-Forwarded-For'] ?? $req['remote_addr'];
     }
 
+    /**
+     * Request
+     *
+     * @param [any] $req
+     * @param [any] $res
+     * @return void
+     */
     public function request($req, $res) {
         $pathname = strtok($req['url'], '?');
         $route = $this->findRoute($req);
@@ -150,5 +247,5 @@ class Router
         $headers = $response['headers'] ?? ['Content-Type' => 'application/json'];
         $res->status($code)->headers($headers)->send($response);
     }
-    
+
 }
