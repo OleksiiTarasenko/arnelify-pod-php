@@ -99,13 +99,16 @@ class Router
 
     private function getParams($req) {
         $query = [];
-        parse_str(parse_url($req['url'], PHP_URL_QUERY), $query);
+        
+        $urlQuery = parse_url($req['url'], PHP_URL_QUERY);
+        if (!$urlQuery) return null;
+
+        parse_str($urlQuery, $query);
         return $query;
     }
 
     private function getBody($req) {
-        /* TODO:const body = await formidable(req);
-        return body; */
+        /* TODO*/
     }
 
     private function getIp($req) {
@@ -121,7 +124,16 @@ class Router
         $agent = $this->getAgent($req);
         $ip = $this->getIp($req);
 
-        $ctx = ['params' => array_merge(['_state' => ['pathname' => $pathname, 'cookie' => $cookies, 'route' => $route, 'agent' => $agent, 'ip' => $ip]], $params, $body)];
+        $state = [
+            '_state' => [
+                'pathname' => $pathname,
+                'cookie'   => $cookies,
+                'route'    => $route,
+                'agent'    => $agent,
+                'ip'       => $ip,
+            ],
+        ];
+        $ctx = ['params' => array_merge($state, $params, $body)];
 
         if (!$route || !isset($route['controller'])) {
             $res->status(404)->send(['code' => 404, 'error' => 'Not found.']);
