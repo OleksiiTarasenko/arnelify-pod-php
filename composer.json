@@ -1,0 +1,17 @@
+{
+  "name": "arnelify-community/arnelify-pod-php",
+  "version": "0.5.1",
+  "description": "An unofficial, open-source community-version of the Arnelify POD framework, written in PHP.",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/app"
+    }
+  },
+  "authors": [
+    {
+      "name": "Arnelify Community"
+    }
+  ],
+  "require": {}
+}

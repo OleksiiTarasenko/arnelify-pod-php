@@ -1,5 +1,5 @@
 # Arnelify POD for PHP
-![Arnelify](https://img.shields.io/badge/Arnelify%20POD%20for%20PHP-0.5.1-blue) ![PHP](https://img.shields.io/badge/PHP-8.3-purple)
+![Arnelify](https://img.shields.io/badge/Arnelify%20POD%20for%20PHP-0.5.2-blue) ![PHP](https://img.shields.io/badge/PHP-8.3-purple)
 
 Supported by the community:
 
@@ -28,7 +28,7 @@ cp .env.local .env
 
 Run Docker:
 ```
-docker compose up -d
+docker compose up -d --build
 ```
 ## ⭐ Release Notes
 Version 0.5.2 - First Raw Release

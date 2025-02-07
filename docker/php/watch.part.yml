@@ -1,0 +1,56 @@
+networks:
+  arnelify-network:
+    name: arnelify-network
+    driver: bridge
+
+services:
+  php:
+    container_name: php
+    build:
+      context: .
+      dockerfile: php.dockerfile
+    volumes:
+      - ./docker/php/volumes/cli:/etc/php/8.3/cli
+      - ./docker/php/volumes/fpm:/etc/php/8.3/fpm
+      - ./:/var/www/php
+    restart: unless-stopped
+    networks:
+      - arnelify-network
+    ports:
+      - "9000:9000"
+    tty: true
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./docker/nginx/volumes/conf.d/:/etc/nginx/conf.d
+      - ./docker/nginx/volumes/logs/:/var/log/nginx
+      - ./:/var/www/pod
+    networks:
+      - arnelify-network
+    ports:
+      - "3001:3001"
+    depends_on:
+      - php
+  # mysql:
+  #   container_name: mysql
+  #   image: mysql:8.0
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_MASTER_PASS}
+  #     - MYSQL_DATABASE=${MYSQL_MASTER_NAME}
+  #   volumes:
+  #     - ./docker/mysql/volumes/:/var/lib/mysql/
+  #   command: --default-authentication-plugin=caching_sha2_password
+  #   restart: unless-stopped
+  # pma:
+  #   container_name: pma
+  #   image: phpmyadmin:latest
+  #   restart: always
+  #   environment:
+  #     - PMA_HOST=${MYSQL_MASTER_HOST}
+  #     - PMA_USER=${MYSQL_MASTER_USER}
+  #     - PMA_PASSWORD=${MYSQL_MASTER_PASS}
+  #     - PMA_ARBITRARY=1
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - mysql
